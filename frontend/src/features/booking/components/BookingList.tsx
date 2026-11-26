@@ -1,5 +1,5 @@
 import { CalendarX2 } from "lucide-react";
-import { CancelBookingButton } from "@/components/CancelBookingButton";
+import { CancelBookingButton } from "@/features/booking/components/CancelBookingButton";
 import {
   Table,
   TableBody,

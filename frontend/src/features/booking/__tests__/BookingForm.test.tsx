@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { BookingForm } from "@/components/BookingForm";
+import { BookingForm } from "@/features/booking/components/BookingForm";
 import { booking, mockFetch, sentBody } from "@/test/utils";
 
 const refresh = vi.fn();

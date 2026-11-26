@@ -21,6 +21,11 @@ describe("POST /api/bookings — creating a booking", () => {
     expect(await prisma.booking.count()).toBe(1);
   });
 
+  it("points the Location header at the new booking", async () => {
+    const res = await post(bookingBody()).expect(201);
+    expect(res.headers.location).toBe(`/api/bookings/${res.body.id}`);
+  });
+
   it("trims the booker name before saving", async () => {
     const res = await post(bookingBody({ bookerName: "  สมชาย  " })).expect(201);
     expect(res.body.bookerName).toBe("สมชาย");

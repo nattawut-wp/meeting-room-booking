@@ -63,6 +63,20 @@ export function getRooms() {
   return request<Room[]>("/api/rooms");
 }
 
+export function getRoom(roomId: number) {
+  return request<Room>(`/api/rooms/${roomId}`);
+}
+
+/** Resolves to null instead of throwing when the API says 404, so a page can call notFound(). */
+export async function orNullIfNotFound<T>(promise: Promise<T>): Promise<T | null> {
+  try {
+    return await promise;
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) return null;
+    throw err;
+  }
+}
+
 export function getRoomBookings(roomId: number) {
   return request<Booking[]>(`/api/rooms/${roomId}/bookings`);
 }

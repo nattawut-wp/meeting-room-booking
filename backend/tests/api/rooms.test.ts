@@ -16,6 +16,23 @@ describe("GET /api/rooms", () => {
   });
 });
 
+describe("GET /api/rooms/:id", () => {
+  it("returns one room", async () => {
+    const res = await request(app).get(`/api/rooms/${ROOM_A}`).expect(200);
+    expect(res.body).toMatchObject({ id: ROOM_A, name: "ห้องประชุม A", capacity: 6 });
+  });
+
+  it("returns 404 ROOM_NOT_FOUND for an unknown room", async () => {
+    const res = await request(app).get("/api/rooms/9999").expect(404);
+    expect(res.body.error.code).toBe("ROOM_NOT_FOUND");
+  });
+
+  it("returns 400 for an id that is not a number", async () => {
+    const res = await request(app).get("/api/rooms/abc").expect(400);
+    expect(res.body.error.code).toBe("VALIDATION_ERROR");
+  });
+});
+
 // Spec: "ต้องดูรายการได้ว่าห้องนี้ใครจองไว้บ้าง"
 describe("GET /api/rooms/:id/bookings", () => {
   it("returns an empty list for a room with no bookings", async () => {
