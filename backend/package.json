@@ -1,5 +1,5 @@
 {
-  "name": "backend",
+  "name": "meeting-room-backend",
   "version": "1.0.0",
   "description": "Meeting room booking API",
   "scripts": {
