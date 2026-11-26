@@ -1,6 +1,6 @@
 {
   "name": "meeting-room-backend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Meeting room booking API",
   "scripts": {
     "dev": "tsx watch src/index.ts",
