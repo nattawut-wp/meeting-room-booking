@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Room {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  capacity Int?
+  bookings Booking[]
+
+  @@map("rooms")
+}
+
+model Booking {
+  id         Int      @id @default(autoincrement())
+  roomId     Int      @map("room_id")
+  room       Room     @relation(fields: [roomId], references: [id])
+  bookerName String   @map("booker_name")
+  startTime  DateTime @map("start_time") @db.Timestamptz(3)
+  endTime    DateTime @map("end_time") @db.Timestamptz(3)
+  pinHash    String   @map("pin_hash") // bcrypt hash of the cancel PIN, never the PIN itself
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([roomId, startTime])
+  @@map("bookings")
+}
