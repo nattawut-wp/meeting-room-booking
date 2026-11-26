@@ -1,31 +1,38 @@
 // Every meeting room is in Thailand, so dates and times are always shown and
 // entered in Bangkok time, whatever time zone the visitor's computer uses.
+//
+// We do NOT use Intl.DateTimeFormat for display text: Node (which renders the
+// booking list on the server) and browsers ship different locale data, e.g.
+// Node writes Thursday as "พฤ." but Chrome writes "พฤหัส". Building the text
+// ourselves gives the same result everywhere.
 export const TIME_ZONE = "Asia/Bangkok";
 const BANGKOK_OFFSET = "+07:00";
+const BANGKOK_OFFSET_MS = 7 * 60 * 60 * 1000; // Thailand has no daylight saving time
 
-const dateFormat = new Intl.DateTimeFormat("th-TH", {
-  timeZone: TIME_ZONE,
-  weekday: "short",
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-});
+const WEEKDAYS = ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."];
+const MONTHS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+const BUDDHIST_ERA_OFFSET = 543;
 
-const timeFormat = new Intl.DateTimeFormat("th-TH", {
-  timeZone: TIME_ZONE,
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: false,
-});
+/**
+ * The same instant shifted by +7h, so its getUTC* methods return Bangkok wall-clock values.
+ * Only read it with getUTC* methods.
+ */
+function bangkokClock(date: Date): Date {
+  return new Date(date.getTime() + BANGKOK_OFFSET_MS);
+}
+
+const pad2 = (n: number) => String(n).padStart(2, "0");
 
 /** "พฤ. 3 ธ.ค. 2569" */
 export function formatDate(iso: string): string {
-  return dateFormat.format(new Date(iso));
+  const d = bangkokClock(new Date(iso));
+  return `${WEEKDAYS[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear() + BUDDHIST_ERA_OFFSET}`;
 }
 
 /** "09:00" */
 export function formatTime(iso: string): string {
-  return timeFormat.format(new Date(iso));
+  const d = bangkokClock(new Date(iso));
+  return `${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}`;
 }
 
 /** "09:00–10:30" */
@@ -40,6 +47,6 @@ export function toBangkokIso(date: string, time: string): string {
 
 /** Today's date in Bangkok as "YYYY-MM-DD" (the format <input type="date"> uses). */
 export function todayInBangkok(now: Date = new Date()): string {
-  // en-CA happens to format dates as YYYY-MM-DD.
-  return new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE }).format(now);
+  const d = bangkokClock(now);
+  return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
 }
