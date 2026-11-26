@@ -1,5 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
-import { formatDate, formatTime, formatTimeRange, toBangkokIso, todayInBangkok } from "./datetime";
+import {
+  addDays,
+  bangkokMs,
+  formatDate,
+  formatTime,
+  formatTimeRange,
+  minutesToTime,
+  toBangkokIso,
+  todayInBangkok,
+} from "./datetime";
 
 describe("datetime helpers (always Bangkok time)", () => {
   it("builds an ISO string with the +07:00 offset from date and time inputs", () => {
@@ -55,5 +64,23 @@ describe("datetime helpers (always Bangkok time)", () => {
       expect(fresh.formatDate("2026-12-03T03:00:00Z")).toBe("พฤ. 3 ธ.ค. 2569");
       expect(fresh.formatTime("2026-12-03T03:00:00Z")).toBe("10:00");
     });
+  });
+});
+
+describe("timeline helpers", () => {
+  it("adds days across month and year ends", () => {
+    expect(addDays("2030-01-31", 1)).toBe("2030-02-01");
+    expect(addDays("2030-12-31", 1)).toBe("2031-01-01");
+    expect(addDays("2030-03-01", -1)).toBe("2030-02-28");
+  });
+
+  it("turns minutes since midnight into HH:MM", () => {
+    expect(minutesToTime(0)).toBe("00:00");
+    expect(minutesToTime(570)).toBe("09:30");
+    expect(minutesToTime(1200)).toBe("20:00");
+  });
+
+  it("gives the instant of a Bangkok wall-clock time", () => {
+    expect(new Date(bangkokMs("2030-01-15", 600)).toISOString()).toBe("2030-01-15T03:00:00.000Z");
   });
 });

@@ -55,7 +55,10 @@ describe("BookingForm", () => {
       pin: "1234",
     });
 
-    expect(await screen.findByText(/จองสำเร็จ/)).toHaveTextContent("10:00–11:30");
+    const summary = await screen.findByRole("status");
+    expect(summary).toHaveTextContent("จองสำเร็จ");
+    expect(summary).toHaveTextContent("10:00–11:30");
+    expect(screen.getByRole("button", { name: /เพิ่มลงปฏิทิน/ })).toBeInTheDocument();
     expect(screen.getByLabelText("ชื่อผู้จอง")).toHaveValue("");
     expect(refresh).toHaveBeenCalledOnce();
   });
@@ -97,6 +100,14 @@ describe("BookingForm", () => {
     const endError = await screen.findByText("เวลาจบต้องหลังเวลาเริ่ม");
     expect(screen.getByLabelText("เวลาจบ")).toHaveAttribute("aria-describedby", endError.id);
     expect(screen.getByText("รหัสยกเลิกต้องเป็นตัวเลข 4–6 หลัก")).toBeInTheDocument();
+  });
+
+  it("copies a time picked on the timeline into the inputs", () => {
+    const { rerender } = render(<BookingForm roomId={1} />);
+    rerender(<BookingForm roomId={1} prefill={{ date: "2030-01-15", start: "13:00", end: "14:00" }} />);
+    expect(screen.getByLabelText("วันที่")).toHaveValue("2030-01-15");
+    expect(screen.getByLabelText("เวลาเริ่ม")).toHaveValue("13:00");
+    expect(screen.getByLabelText("เวลาจบ")).toHaveValue("14:00");
   });
 
   it("explains when the server cannot be reached", async () => {

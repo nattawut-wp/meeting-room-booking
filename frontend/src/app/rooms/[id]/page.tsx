@@ -2,8 +2,8 @@ import { ArrowLeft, Users } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { BookingForm } from "@/components/BookingForm";
 import { BookingList } from "@/components/BookingList";
+import { RoomScheduler } from "@/components/RoomScheduler";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -51,17 +51,14 @@ async function RoomDetail({ params }: { params: Promise<{ id: string }> }) {
         )}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_1fr] lg:items-start">
-        <div className="lg:sticky lg:top-6">
-          <BookingForm roomId={room.id} />
-        </div>
+      <RoomScheduler room={room} bookings={bookings}>
         <section aria-labelledby="bookings-heading">
           <h2 id="bookings-heading" className="mb-3 font-medium">
-            รายการจอง <span className="text-muted-foreground">({bookings.length})</span>
+            รายการจองที่จะถึง <span className="text-muted-foreground">({bookings.length})</span>
           </h2>
           <BookingList bookings={bookings} />
         </section>
-      </div>
+      </RoomScheduler>
     </>
   );
 }
@@ -72,7 +69,10 @@ function RoomSkeleton() {
       <Skeleton className="mb-6 h-8 w-48" />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_1fr]">
         <Skeleton className="h-[28rem] rounded-xl" />
-        <Skeleton className="h-64 rounded-xl" />
+        <div className="grid gap-6">
+          <Skeleton className="h-[30rem] rounded-xl" />
+          <Skeleton className="h-40 rounded-xl" />
+        </div>
       </div>
     </div>
   );
