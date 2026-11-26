@@ -1,0 +1,17 @@
+{
+  "name": "meeting-room-booking",
+  "version": "1.0.0",
+  "description": "Meeting room booking: Next.js + Express + PostgreSQL",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "private": true,
+  "devDependencies": {
+    "@playwright/test": "^1.65.1"
+  }
+}
