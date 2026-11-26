@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { DayTimeline } from "@/components/DayTimeline";
+import { DayTimeline } from "@/features/booking/components/DayTimeline";
 import { booking } from "@/test/utils"; // 10:00–11:30 Bangkok on 2030-01-15
 
 const DATE = "2030-01-15";

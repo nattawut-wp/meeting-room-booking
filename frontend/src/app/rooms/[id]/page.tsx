@@ -1,13 +1,9 @@
-import { ArrowLeft, Users } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { BookingList } from "@/components/BookingList";
-import { RoomScheduler } from "@/components/RoomScheduler";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ApiError, getRoomBookings, getRooms } from "@/lib/api";
+import { RoomDetail, RoomDetailSkeleton } from "@/features/rooms/components/RoomDetail";
 
 export default function RoomPage({ params }: PageProps<"/rooms/[id]">) {
   return (
@@ -17,63 +13,16 @@ export default function RoomPage({ params }: PageProps<"/rooms/[id]">) {
         ห้องทั้งหมด
       </Button>
       {/* params and the bookings are only known at request time, so they stream behind a fallback. */}
-      <Suspense fallback={<RoomSkeleton />}>
-        <RoomDetail params={params} />
+      <Suspense fallback={<RoomDetailSkeleton />}>
+        <RoomFromParams params={params} />
       </Suspense>
     </main>
   );
 }
 
-async function RoomDetail({ params }: { params: Promise<{ id: string }> }) {
+async function RoomFromParams({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const roomId = Number(id);
   if (!Number.isInteger(roomId) || roomId <= 0) notFound();
-
-  const [rooms, bookings] = await Promise.all([
-    getRooms(),
-    getRoomBookings(roomId).catch((err) => {
-      if (err instanceof ApiError && err.status === 404) return null;
-      throw err;
-    }),
-  ]);
-  const room = rooms.find((r) => r.id === roomId);
-  if (!room || !bookings) notFound();
-
-  return (
-    <>
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">{room.name}</h1>
-        {room.capacity && (
-          <Badge variant="secondary">
-            <Users aria-hidden />
-            {room.capacity} ที่นั่ง
-          </Badge>
-        )}
-      </div>
-
-      <RoomScheduler room={room} bookings={bookings}>
-        <section aria-labelledby="bookings-heading">
-          <h2 id="bookings-heading" className="mb-3 font-medium">
-            รายการจองที่จะถึง <span className="text-muted-foreground">({bookings.length})</span>
-          </h2>
-          <BookingList bookings={bookings} />
-        </section>
-      </RoomScheduler>
-    </>
-  );
-}
-
-function RoomSkeleton() {
-  return (
-    <div aria-label="กำลังโหลด">
-      <Skeleton className="mb-6 h-8 w-48" />
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_1fr]">
-        <Skeleton className="h-[28rem] rounded-xl" />
-        <div className="grid gap-6">
-          <Skeleton className="h-[30rem] rounded-xl" />
-          <Skeleton className="h-40 rounded-xl" />
-        </div>
-      </div>
-    </div>
-  );
+  return <RoomDetail roomId={roomId} />;
 }

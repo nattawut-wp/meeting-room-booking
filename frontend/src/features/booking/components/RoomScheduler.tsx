@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { BookingForm } from "@/components/BookingForm";
-import { DayTimeline, type TimeSelection } from "@/components/DayTimeline";
+import { BookingForm } from "@/features/booking/components/BookingForm";
+import { DayTimeline, type TimeSelection } from "@/features/booking/components/DayTimeline";
 import type { Booking, Room } from "@/lib/api";
 import { todayInBangkok } from "@/lib/datetime";
 
