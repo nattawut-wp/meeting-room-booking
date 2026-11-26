@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { BookingList } from "@/components/BookingList";
+import { BookingList } from "@/features/booking/components/BookingList";
 import { booking } from "@/test/utils";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
