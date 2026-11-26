@@ -1,4 +1,4 @@
-import { ArrowRight, DoorOpen, Users } from "lucide-react";
+import { ArrowRight, CalendarCheck, Clock, DoorOpen, Users } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ export default function HomePage() {
     <main className="mx-auto w-full max-w-5xl px-4 py-10">
       <h1 className="text-2xl font-semibold tracking-tight">ห้องประชุม</h1>
       <p className="mt-1 text-muted-foreground">เลือกห้องเพื่อดูว่าใครจองไว้บ้าง และจองช่วงเวลาที่ว่าง</p>
+      <Steps />
       {/* The room list is fetched fresh on every request, so it streams in behind a fallback. */}
       <Suspense fallback={<RoomGridSkeleton />}>
         <RoomGrid />
@@ -55,6 +56,33 @@ async function RoomGrid() {
         </li>
       ))}
     </ul>
+  );
+}
+
+const STEPS = [
+  { icon: DoorOpen, title: "เลือกห้อง", text: "ดูความจุที่เหมาะกับจำนวนคน" },
+  { icon: Clock, title: "เลือกช่วงที่ว่าง", text: "กดช่องสีเขียวบนตารางห้อง" },
+  { icon: CalendarCheck, title: "ยืนยัน", text: "ใส่ชื่อและรหัสยกเลิก แล้วเพิ่มลงปฏิทินได้" },
+];
+
+function Steps() {
+  return (
+    <ol className="mt-6 grid gap-3 sm:grid-cols-3" aria-label="ขั้นตอนการจอง">
+      {STEPS.map(({ icon: Icon, title, text }, i) => (
+        <li key={title} className="flex items-start gap-3 rounded-xl border bg-background p-4">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+            {i + 1}
+          </span>
+          <div>
+            <p className="flex items-center gap-1.5 font-medium">
+              <Icon className="size-4 text-muted-foreground" aria-hidden />
+              {title}
+            </p>
+            <p className="text-sm text-muted-foreground">{text}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
   );
 }
 
