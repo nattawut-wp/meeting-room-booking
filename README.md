@@ -22,14 +22,20 @@ meeting/
 ├── backend/               # REST API (port 4000)
 │   ├── prisma/            # schema, migrations, seed (3 ห้อง)
 │   ├── src/
-│   │   ├── routes/        # rooms.ts, bookings.ts
-│   │   └── lib/           # validation, overlap, errors
-│   └── tests/             # unit + API tests
+│   │   ├── routes/        # แค่ผูก URL → controller
+│   │   ├── controllers/   # เรื่อง HTTP: validate request, ส่ง response
+│   │   ├── services/      # กฎของระบบ: ห้ามจองชน, ตรวจ PIN (ไม่รู้จัก req/res)
+│   │   ├── repositories/  # คุยกับ DB (Prisma) ที่เดียว
+│   │   └── lib/           # validation, errors (code → HTTP status), overlap
+│   └── tests/             # unit (service ไม่ใช้ DB) + API tests
 ├── frontend/              # เว็บ (port 3000)
 │   └── src/
-│       ├── app/           # หน้า / และ /rooms/[id]
-│       ├── components/    # BookingForm, BookingList, CancelBookingButton, ui/
-│       └── lib/           # api client, datetime helpers
+│       ├── app/           # route บางๆ: หน้า / และ /rooms/[id]
+│       ├── features/
+│       │   ├── booking/   # components, hooks (useBookingForm), __tests__
+│       │   └── rooms/     # RoomGrid, RoomDetail
+│       ├── components/ui/ # component กลางจาก shadcn (ไม่มี business logic)
+│       └── lib/           # api client, datetime, ics helpers
 └── e2e/                   # Playwright tests
 ```
 
@@ -75,6 +81,7 @@ npm run dev              # http://localhost:3000
 | Method | Path | ผลลัพธ์ |
 |---|---|---|
 | GET | `/api/rooms` | รายชื่อห้อง |
+| GET | `/api/rooms/:id` | ข้อมูลห้องเดียว (404 ถ้าไม่มี) |
 | GET | `/api/rooms/:id/bookings?from=ISO` | การจองของห้อง เรียงตามเวลา (ค่า default: เฉพาะที่ยังไม่จบ) |
 | POST | `/api/bookings` | จอง: `{ roomId, bookerName, startTime, endTime, pin }` → `201`, `400`, `404`, `409` |
 | DELETE | `/api/bookings/:id` | ยกเลิก: `{ pin }` → `204`, `400`, `403`, `404` |
