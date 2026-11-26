@@ -56,8 +56,14 @@ test("3. an overlapping booking in the same room is refused and says who holds t
   await expect(bookingRows(page)).toHaveCount(1);
 
   await book(page, { name: "สมหญิง", start: "10:30", end: "11:30", pin: "5678" });
-  await expect(page.getByText(/ห้องนี้ถูก สมชาย จองไว้แล้ว/)).toBeVisible();
+  const conflict = page.getByText(/ห้องนี้ถูก สมชาย จองไว้แล้ว/);
+  await expect(conflict).toBeVisible();
   await expect(bookingRows(page)).toHaveCount(1);
+
+  // The list (rendered by the server) and the message (rendered in the browser)
+  // must write the date the same way.
+  const listDate = (await bookingRows(page).first().locator("td").first().innerText()).trim();
+  await expect(conflict).toContainText(`${listDate} 10:00–11:00`);
 
   // Back-to-back is fine.
   await book(page, { name: "สมหญิง", start: "11:00", end: "12:00", pin: "5678" });
