@@ -50,3 +50,20 @@ export function todayInBangkok(now: Date = new Date()): string {
   const d = bangkokClock(now);
   return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
 }
+
+/** Shift a "YYYY-MM-DD" date by n days: addDays("2030-01-31", 1) → "2030-02-01". */
+export function addDays(dateKey: string, n: number): string {
+  const d = new Date(`${dateKey}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Minutes since midnight → "HH:MM": minutesToTime(570) → "09:30". */
+export function minutesToTime(minutes: number): string {
+  return `${pad2(Math.floor(minutes / 60))}:${pad2(minutes % 60)}`;
+}
+
+/** The instant (ms since epoch) of a Bangkok wall-clock time on a "YYYY-MM-DD" date. */
+export function bangkokMs(dateKey: string, minutes: number): number {
+  return Date.parse(toBangkokIso(dateKey, minutesToTime(minutes)));
+}

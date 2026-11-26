@@ -17,11 +17,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="th" className={`${notoSansThai.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col bg-muted/30">
-        <header className="border-b bg-background">
+      <body className="flex min-h-full flex-col bg-background">
+        <header className="border-b bg-card">
           <div className="mx-auto flex h-14 w-full max-w-5xl items-center px-4">
             <Link href="/" className="flex items-center gap-2 font-semibold">
-              <CalendarDays className="size-5 text-primary" aria-hidden />
+              <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <CalendarDays className="size-4" aria-hidden />
+              </span>
               จองห้องประชุม
             </Link>
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarPlus, CheckCircle2, Loader2, TriangleAlert } from "lucide-react";
+import { CalendarPlus, CheckCircle2, Download, Loader2, TriangleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ApiError, createBooking } from "@/lib/api";
+import type { TimeSelection } from "@/components/DayTimeline";
+import { ApiError, createBooking, type Booking } from "@/lib/api";
 import { formatDate, formatTimeRange, toBangkokIso, todayInBangkok } from "@/lib/datetime";
+import { bookingToIcs } from "@/lib/ics";
 
 type Field = "bookerName" | "date" | "start" | "end" | "pin";
 type FieldErrors = Partial<Record<Field, string>>;
@@ -34,23 +36,49 @@ function validateLocally(values: typeof EMPTY): FieldErrors {
   return errors;
 }
 
-export function BookingForm({ roomId }: { roomId: number }) {
+interface Props {
+  roomId: number;
+  roomName?: string;
+  /** A time picked on the timeline; when it changes, it is copied into the date and time inputs. */
+  prefill?: TimeSelection | null;
+  /** Called whenever the user edits the date or a time, so the timeline can follow. */
+  onTimeChange?: (selection: TimeSelection) => void;
+}
+
+export function BookingForm({ roomId, roomName = "ห้องประชุม", prefill = null, onTimeChange }: Props) {
   const router = useRouter();
   const [values, setValues] = useState(EMPTY);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [booked, setBooked] = useState<Booking | null>(null);
   const [pending, setPending] = useState(false);
 
+  // Copy a new timeline pick into the form. Adjusting state while rendering (instead of in an
+  // effect) is React's recommended way to react to a changed prop: no extra render with stale values.
+  const [lastPrefill, setLastPrefill] = useState(prefill);
+  if (prefill !== lastPrefill) {
+    setLastPrefill(prefill);
+    if (prefill) {
+      setValues((v) => ({ ...v, date: prefill.date, start: prefill.start, end: prefill.end }));
+      setErrors((e) => ({ ...e, date: undefined, start: undefined, end: undefined }));
+      setBooked(null);
+      setFormError(null);
+    }
+  }
+
   function update(field: Field, value: string) {
-    setValues((v) => ({ ...v, [field]: value }));
+    const next = { ...values, [field]: value };
+    setValues(next);
     setErrors((e) => ({ ...e, [field]: undefined }));
+    if (field === "date" || field === "start" || field === "end") {
+      onTimeChange?.({ date: next.date, start: next.start, end: next.end });
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
-    setSuccess(null);
+    setBooked(null);
 
     const localErrors = validateLocally(values);
     setErrors(localErrors);
@@ -66,9 +94,7 @@ export function BookingForm({ roomId }: { roomId: number }) {
         pin: values.pin,
       });
       setValues(EMPTY);
-      setSuccess(
-        `จองสำเร็จ: ${formatDate(booking.startTime)} ${formatTimeRange(booking.startTime, booking.endTime)}`,
-      );
+      setBooked(booking);
       router.refresh(); // re-fetch the booking list on the server
     } catch (err) {
       if (!(err instanceof ApiError)) {
@@ -129,13 +155,7 @@ export function BookingForm({ roomId }: { roomId: number }) {
               <AlertDescription>{formError}</AlertDescription>
             </Alert>
           )}
-          {success && (
-            <Alert>
-              <CheckCircle2 aria-hidden />
-              <AlertTitle>เรียบร้อย</AlertTitle>
-              <AlertDescription>{success}</AlertDescription>
-            </Alert>
-          )}
+          {booked && <BookingSummary booking={booked} roomName={roomName} />}
 
           <div className="grid gap-2">
             <Label htmlFor="bookerName">ชื่อผู้จอง</Label>
@@ -184,5 +204,41 @@ export function BookingForm({ roomId }: { roomId: number }) {
         </form>
       </CardContent>
     </Card>
+  );
+}
+
+/** Confirmation shown after a booking: what was booked, and a way to put it in a calendar. */
+function BookingSummary({ booking, roomName }: { booking: Booking; roomName: string }) {
+  function downloadIcs() {
+    const blob = new Blob([bookingToIcs(booking, roomName)], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `booking-${booking.id}.ics`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <Alert role="status" className="border-available/30 bg-available/5">
+      <CheckCircle2 className="text-available" aria-hidden />
+      <AlertTitle>จองสำเร็จ</AlertTitle>
+      <AlertDescription>
+        <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-foreground">
+          <dt className="text-muted-foreground">ห้อง</dt>
+          <dd>{roomName}</dd>
+          <dt className="text-muted-foreground">วันที่</dt>
+          <dd>{formatDate(booking.startTime)}</dd>
+          <dt className="text-muted-foreground">เวลา</dt>
+          <dd className="font-medium tabular-nums">{formatTimeRange(booking.startTime, booking.endTime)}</dd>
+          <dt className="text-muted-foreground">ผู้จอง</dt>
+          <dd>{booking.bookerName}</dd>
+        </dl>
+        <Button type="button" variant="outline" size="sm" className="mt-3" onClick={downloadIcs}>
+          <Download aria-hidden />
+          เพิ่มลงปฏิทิน (.ics)
+        </Button>
+      </AlertDescription>
+    </Alert>
   );
 }
